@@ -1,0 +1,8 @@
+<library path="steer_pid_controller">
+  <class name="steer_pid_controller/SteerPidController"
+         type="steer_pid_controller::SteerPidController" base_class_type="controller_interface::ChainableControllerInterface">
+  <description>
+    A PID controller for steering motors
+  </description>
+  </class>
+</library>

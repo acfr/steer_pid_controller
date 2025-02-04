@@ -1,0 +1,83 @@
+steer_pid_controller:
+  dof_names: {
+    type: string_array,
+    default_value: [],
+    description: "Specifies output dof_names or axes used by the controller.",
+    read_only: true,
+    validation: {
+      unique<>: null,
+      not_empty<>: null,
+    }
+  }
+  reference_dof_names: {
+    type: string_array,
+    default_value: [],
+    description: "Specifies input dof_names or axes used by the controller. ",
+    read_only: true,
+    validation: {
+      unique<>: null,
+      not_empty<>: null,
+    }
+  }
+  command_interface: {
+    type: string,
+    default_value: "",
+    description: "Name of the interface used by the controller for writing commands to the hardware.",
+    read_only: true,
+    validation: {
+      not_empty<>: null,
+    }
+  }
+  state_interfaces: {
+    type: string_array,
+    default_value: [],
+    description: "Name of the interfaces used by the controller getting hardware states.",
+    read_only: true,
+    validation: {
+      not_empty<>: null,
+      size_lt<>: 3,
+    }
+  }
+  gains:
+    __map_dof_names:
+      p: {
+        type: double,
+        default_value: 0.0,
+        description: "Proportional gain for PID"
+      }
+      i: {
+        type: double,
+        default_value: 0.0,
+        description: "Integral gain for PID"
+      }
+      d: {
+        type: double,
+        default_value: 0.0,
+        description: "Derivative gain for PID"
+      }
+      antiwindup: {
+        type: bool,
+        default_value: false,
+        description: "Antiwindup functionality."
+      }
+      i_clamp_max: {
+        type: double,
+        default_value: 0.0,
+        description: "Upper integral clamp. Only used if antiwindup is activated."
+      }
+      i_clamp_min: {
+        type: double,
+        default_value: 0.0,
+        description: "Lower integral clamp. Only used if antiwindup is activated."
+      }
+      feedforward_gain: {
+        type: double,
+        default_value: 0.0,
+        description: "Gain for the feed-forward part."
+      }
+      angle_wraparound: {
+        type: bool,
+        default_value: false,
+        description: "For joints that wrap around (i.e., are continuous).
+          Normalizes position-error to -pi to pi."
+      }
