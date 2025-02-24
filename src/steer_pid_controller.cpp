@@ -381,29 +381,29 @@ namespace steer_pid_controller
       }
     }
 
-    if (state_publisher_ && state_publisher_->trylock())
-    {
-      state_publisher_->msg_.header.stamp = time;
-      for (size_t i = 0; i < dof_; ++i)
-      {
-        state_publisher_->msg_.dof_states[i].reference = reference_interfaces_[i];
-        state_publisher_->msg_.dof_states[i].feedback = measured_state_values_[i];
-        state_publisher_->msg_.dof_states[i].error = reference_interfaces_[i] - measured_state_values_[i];
+    // if (state_publisher_ && state_publisher_->trylock())
+    // {
+    //   state_publisher_->msg_.header.stamp = time;
+    //   for (size_t i = 0; i < dof_; ++i)
+    //   {
+    //     state_publisher_->msg_.dof_states[i].reference = reference_interfaces_[i];
+    //     state_publisher_->msg_.dof_states[i].feedback = measured_state_values_[i];
+    //     state_publisher_->msg_.dof_states[i].error = reference_interfaces_[i] - measured_state_values_[i];
 
-        if (params_.gains.dof_names_map[params_.dof_names[i]].angle_wraparound)
-        {
-          // for continuous angles the error is normalized between -pi<error<pi
-          state_publisher_->msg_.dof_states[i].error =
-              angles::shortest_angular_distance(measured_state_values_[i], reference_interfaces_[i]);
-        }
+    //     if (params_.gains.dof_names_map[params_.dof_names[i]].angle_wraparound)
+    //     {
+    //       // for continuous angles the error is normalized between -pi<error<pi
+    //       state_publisher_->msg_.dof_states[i].error =
+    //           angles::shortest_angular_distance(measured_state_values_[i], reference_interfaces_[i]);
+    //     }
 
-        state_publisher_->msg_.dof_states[i].time_step = period.seconds();
-        // Command can store the old calculated values. This should be obvious because at least one
-        // another value is NaN.
-        state_publisher_->msg_.dof_states[i].output = command_interfaces_[i].get_value();
-      }
-      state_publisher_->unlockAndPublish();
-    }
+    //     state_publisher_->msg_.dof_states[i].time_step = period.seconds();
+    //     // Command can store the old calculated values. This should be obvious because at least one
+    //     // another value is NaN.
+    //     state_publisher_->msg_.dof_states[i].output = command_interfaces_[i].get_value();
+    //   }
+    //   state_publisher_->unlockAndPublish();
+    // }
 
     return controller_interface::return_type::OK;
   }
