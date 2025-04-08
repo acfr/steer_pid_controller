@@ -43,6 +43,8 @@
 #include "control_toolbox/pid_ros.hpp"
 #include "angles/angles.h"
 #include "std_srvs/srv/set_bool.hpp"
+#include "realtime_tools/realtime_buffer.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
