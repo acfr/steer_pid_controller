@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(steer_pid_controller LANGUAGES CXX)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+find_package(ros2_control_cmake REQUIRED)
+set_compiler_options()
+export_windows_symbols()
+
+if(WIN32)
+  add_compile_definitions(
+    # For math constants
+    _USE_MATH_DEFINES
+    # Minimize Windows namespace collision
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+  )
 endif()
 
 # find dependencies
@@ -44,13 +54,22 @@ target_compile_features(steer_pid_controller PUBLIC cxx_std_17)
 target_include_directories(steer_pid_controller PUBLIC
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include/steer_pid_controller>")
-target_link_libraries(steer_pid_controller PUBLIC
-  steer_pid_controller_parameters)
-ament_target_dependencies(steer_pid_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-# Causes the visibility macros to use dllexport rather than dllimport,
-# which is appropriate when building the dll but not consuming it.
-target_compile_definitions(steer_pid_controller PRIVATE "STEER_PID_CONTROLLER_BUILDING_DLL")
+target_link_libraries(steer_pid_controller PUBLIC
+                      steer_pid_controller_parameters
+                      angles::angles
+                      control_toolbox::control_toolbox
+                      controller_interface::controller_interface
+                      hardware_interface::hardware_interface
+                      pluginlib::pluginlib
+                      rclcpp::rclcpp
+                      rclcpp_lifecycle::rclcpp_lifecycle
+                      realtime_tools::realtime_tools
+                      ${std_srvs_TARGETS}
+                      ${control_msgs_TARGETS}
+                      ${parameter_traits_TARGETS}
+                      ${std_srvs_TARGETS})
+
 pluginlib_export_plugin_description_file(controller_interface steer_pid_controller.xml)
 
 install(

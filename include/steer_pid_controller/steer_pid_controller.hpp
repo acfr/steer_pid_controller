@@ -50,7 +50,6 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "steer_pid_controller/visibility_control.h"
 #include "steer_pid_controller_parameters.hpp"
 
 namespace steer_pid_controller
@@ -58,38 +57,28 @@ namespace steer_pid_controller
   class SteerPidController : public controller_interface::ChainableControllerInterface
   {
   public:
-    STEER_PID_CONTROLLER_PUBLIC
     SteerPidController();
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_init() override;
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::InterfaceConfiguration command_interface_configuration() const override;
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_configure(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_activate(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_deactivate(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_cleanup(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    STEER_PID_CONTROLLER_PUBLIC
-    controller_interface::return_type update_reference_from_subscribers() override;
+    controller_interface::return_type update_reference_from_subscribers(const rclcpp::Time & time, const rclcpp::Duration & /*period*/) override;
 
-    STEER_PID_CONTROLLER_PUBLIC
     controller_interface::return_type update_and_write_commands(
         const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
@@ -99,7 +88,7 @@ namespace steer_pid_controller
     using ControllerStateMsg = control_msgs::msg::MultiDOFStateStamped;
 
   protected:
-    STEER_PID_CONTROLLER_LOCAL void update_command_interfaces(std::vector<double> &drive_values, std::vector<double> &steer_values);
+    void update_command_interfaces(std::vector<double> &drive_values, std::vector<double> &steer_values);
 
     // Parameters from ROS for diff_drive_controller
     std::shared_ptr<steer_pid_controller::ParamListener> param_listener_;
@@ -136,7 +125,7 @@ namespace steer_pid_controller
 
   private:
     // callback for topic interface
-    STEER_PID_CONTROLLER_LOCAL void reference_callback(const std::shared_ptr<ControllerReferenceMsg> msg);
+    void reference_callback(const std::shared_ptr<ControllerReferenceMsg> msg);
   };
 } // namespace steer_pid_controller
 
