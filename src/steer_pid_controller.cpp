@@ -20,22 +20,22 @@
 
 namespace
 {  // utility
-  // Changed services history QoS to keep all so we don't lose any client service calls
-  // \note The versions conditioning is added here to support the source-compatibility with Humble
-  #if RCLCPP_VERSION_MAJOR >= 17
-  rclcpp::QoS qos_services =
-      rclcpp::QoS(rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_ALL, 1)).reliable().durability_volatile();
-  #else
-  static const rmw_qos_profile_t qos_services = { RMW_QOS_POLICY_HISTORY_KEEP_ALL,
-                                                  1,  // message queue depth
-                                                  RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-                                                  RMW_QOS_POLICY_DURABILITY_VOLATILE,
-                                                  RMW_QOS_DEADLINE_DEFAULT,
-                                                  RMW_QOS_LIFESPAN_DEFAULT,
-                                                  RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT,
-                                                  RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
-                                                  false };
-  #endif
+// Changed services history QoS to keep all so we don't lose any client service calls
+// \note The versions conditioning is added here to support the source-compatibility with Humble
+#if RCLCPP_VERSION_MAJOR >= 17
+rclcpp::QoS qos_services =
+    rclcpp::QoS(rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_ALL, 1)).reliable().durability_volatile();
+#else
+static const rmw_qos_profile_t qos_services = { RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+                                                1,  // message queue depth
+                                                RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+                                                RMW_QOS_POLICY_DURABILITY_VOLATILE,
+                                                RMW_QOS_DEADLINE_DEFAULT,
+                                                RMW_QOS_LIFESPAN_DEFAULT,
+                                                RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT,
+                                                RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+                                                false };
+#endif
 
 using ControllerCommandMsg = steer_pid_controller::SteerPidController::ControllerReferenceMsg;
 
@@ -304,8 +304,8 @@ controller_interface::CallbackReturn SteerPidController::on_deactivate(const rcl
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type SteerPidController::update_reference_from_subscribers(
-  const rclcpp::Time & time, const rclcpp::Duration & /*period*/
+controller_interface::return_type
+SteerPidController::update_reference_from_subscribers(const rclcpp::Time& time, const rclcpp::Duration& /*period*/
 )
 {
   auto current_ref = input_ref_.readFromRT();
@@ -378,14 +378,28 @@ controller_interface::return_type SteerPidController::update_and_write_commands(
     {
       state_publisher_->msg_.dof_states[i].reference = reference_interfaces_[i];
       state_publisher_->msg_.dof_states[i].feedback = measured_state_values_[i];
-      state_publisher_->msg_.dof_states[i].error = reference_interfaces_[i] - measured_state_values_[i];
+
+      double steer_control_position_output = 0.0;
+      double position_error = 0.0;
+      double velocity_error = 0.0;
 
       if (params_.gains.dof_names_map[params_.dof_names[i]].angle_wraparound)
       {
         // for continuous angles the error is normalized between -pi<error<pi
-        state_publisher_->msg_.dof_states[i].error =
-            angles::shortest_angular_distance(measured_state_values_[i], reference_interfaces_[i]);
+        position_error = angles::shortest_angular_distance(measured_state_values_[i], reference_interfaces_[i]);
       }
+      else
+      {
+        position_error = reference_interfaces_[i] - measured_state_values_[i];
+      }
+
+      steer_control_position_output += pids_[i]->computeCommand(position_error, period);
+
+      double velocity_setpoint = steer_control_position_output;
+      velocity_error = velocity_setpoint - state_interfaces_[dof_ + i].get_value();
+
+      state_publisher_->msg_.dof_states[i].error = position_error;
+      state_publisher_->msg_.dof_states[i].error_dot = velocity_error;
 
       state_publisher_->msg_.dof_states[i].time_step = period.seconds();
       // Command can store the old calculated values. This should be obvious because at least one
