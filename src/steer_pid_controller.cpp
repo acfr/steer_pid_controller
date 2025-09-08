@@ -371,43 +371,43 @@ controller_interface::return_type SteerPidController::update_and_write_commands(
     }
   }
 
-  if (state_publisher_ && state_publisher_->trylock())
-  {
-    state_publisher_->msg_.header.stamp = time;
-    for (size_t i = 0; i < dof_; ++i)
-    {
-      state_publisher_->msg_.dof_states[i].reference = reference_interfaces_[i];
-      state_publisher_->msg_.dof_states[i].feedback = measured_state_values_[i];
+  // if (state_publisher_ && state_publisher_->trylock())
+  // {
+  //   state_publisher_->msg_.header.stamp = time;
+  //   for (size_t i = 0; i < dof_; ++i)
+  //   {
+  //     state_publisher_->msg_.dof_states[i].reference = reference_interfaces_[i];
+  //     state_publisher_->msg_.dof_states[i].feedback = measured_state_values_[i];
 
-      double steer_control_position_output = 0.0;
-      double position_error = 0.0;
-      double velocity_error = 0.0;
+  //     double steer_control_position_output = 0.0;
+  //     double position_error = 0.0;
+  //     double velocity_error = 0.0;
 
-      if (params_.gains.dof_names_map[params_.dof_names[i]].angle_wraparound)
-      {
-        // for continuous angles the error is normalized between -pi<error<pi
-        position_error = angles::shortest_angular_distance(measured_state_values_[i], reference_interfaces_[i]);
-      }
-      else
-      {
-        position_error = reference_interfaces_[i] - measured_state_values_[i];
-      }
+  //     if (params_.gains.dof_names_map[params_.dof_names[i]].angle_wraparound)
+  //     {
+  //       // for continuous angles the error is normalized between -pi<error<pi
+  //       position_error = angles::shortest_angular_distance(measured_state_values_[i], reference_interfaces_[i]);
+  //     }
+  //     else
+  //     {
+  //       position_error = reference_interfaces_[i] - measured_state_values_[i];
+  //     }
 
-      steer_control_position_output += pids_[i]->computeCommand(position_error, period);
+  //     steer_control_position_output += pids_[i]->computeCommand(position_error, period);
 
-      double velocity_setpoint = steer_control_position_output;
-      velocity_error = velocity_setpoint - state_interfaces_[dof_ + i].get_value();
+  //     double velocity_setpoint = steer_control_position_output;
+  //     velocity_error = velocity_setpoint - state_interfaces_[dof_ + i].get_value();
 
-      state_publisher_->msg_.dof_states[i].error = position_error;
-      state_publisher_->msg_.dof_states[i].error_dot = velocity_error;
+  //     state_publisher_->msg_.dof_states[i].error = position_error;
+  //     state_publisher_->msg_.dof_states[i].error_dot = velocity_error;
 
-      state_publisher_->msg_.dof_states[i].time_step = period.seconds();
-      // Command can store the old calculated values. This should be obvious because at least one
-      // another value is NaN.
-      state_publisher_->msg_.dof_states[i].output = command_interfaces_[i].get_value();
-    }
-    state_publisher_->unlockAndPublish();
-  }
+  //     state_publisher_->msg_.dof_states[i].time_step = period.seconds();
+  //     // Command can store the old calculated values. This should be obvious because at least one
+  //     // another value is NaN.
+  //     state_publisher_->msg_.dof_states[i].output = command_interfaces_[i].get_value();
+  //   }
+  //   state_publisher_->unlockAndPublish();
+  // }
 
   return controller_interface::return_type::OK;
 }
